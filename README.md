@@ -1,59 +1,66 @@
 # Spam Message Classifier
 
-A small, reproducible NLP baseline that classifies SMS-style text as **spam** or **ham** using TF-IDF features and Multinomial Naive Bayes.
+An educational, reproducible NLP baseline that classifies SMS-style messages
+as **spam** or **ham** with TF-IDF features and Multinomial Naive Bayes.
 
-## Pipeline
+## Dataset format
+
+The training script expects a UTF-8 CSV or TSV file with exactly these
+important columns:
 
 ```text
-Message text
-   ↓
-TF-IDF (unigrams + bigrams)
-   ↓
-Multinomial Naive Bayes
-   ↓
-spam / ham
+label,text
+ham,"Can you call me after class?"
+spam,"Congratulations, claim your free prize"
 ```
 
-## What it demonstrates
+`label` must be `ham` or `spam`; `text` must be non-empty. The repository
+does not include a real dataset. You can download a suitable labelled SMS
+dataset such as the [UCI SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
+and convert it to this format without committing the data.
 
-- Text preprocessing through `TfidfVectorizer`
-- Train/test splitting with stratification
-- A scikit-learn `Pipeline` for reproducible preprocessing + modeling
-- Accuracy and classification-report evaluation
-- Reusable single-message prediction
+The built-in messages are a **demonstration only**, not a meaningful
+benchmark. No performance claim is made for them or for any external dataset.
 
-The repository intentionally uses a small built-in teaching dataset. The reported score should **not** be interpreted as production performance. A real SMS dataset and broader evaluation are the next steps.
+## Reproducible pipeline
 
-## Run locally
+1. Load and validate the labelled CSV/TSV input.
+2. Split it into stratified train/test sets with `random_state=42`.
+3. Fit a scikit-learn pipeline: lowercase TF-IDF unigrams/bigrams followed by
+   Multinomial Naive Bayes.
+4. Report accuracy, spam precision, spam recall, spam F1, a confusion matrix,
+   and the per-class classification report on the held-out test set.
+
+The split and model are deterministic for the same input, dependency versions,
+test size, and random seed. A single hold-out score is not a substitute for
+cross-validation or evaluation on a representative, independently collected
+test set.
+
+## Usage
 
 ```bash
-git clone https://github.com/pallavi12-code/Spam-Message-Classifier.git
-cd Spam-Message-Classifier
-pip install -r requirements.txt
-python spam_classifier.py
+python -m venv .venv
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
+python -m pip install -r requirements.txt
+python spam_classifier.py --data path/to/messages.csv
+python spam_classifier.py --data path/to/messages.tsv --test-size 0.2 --random-state 42
 ```
 
-## Example
+To see the API and output format without a real dataset:
 
-```text
-'You have won a free vacation, click to claim now' -> spam
-'Are you free for a call at 5 pm today?' -> ham
+```bash
+python spam_classifier.py --demo
 ```
 
-## Tech stack
+Run tests with:
 
-- Python
-- Scikit-learn
-- TF-IDF
-- Multinomial Naive Bayes
+```bash
+python -m pytest
+```
 
-## Future improvements
+## Project structure
 
-- Train and evaluate on the SMS Spam Collection dataset
-- Compare Naive Bayes with Logistic Regression and linear SVM
-- Add precision/recall and confusion-matrix reporting
-- Add a lightweight prediction API or Streamlit interface
-
-## Author
-
-**Pallavi Reddy** — AI & Machine Learning Engineering Student, CBIT
+- `spam_classifier.py` - dataset loading, preprocessing, training, evaluation,
+  and prediction.
+- `tests/` - preprocessing, validation, reproducibility, and prediction tests.
+- `.github/workflows/ci.yml` - tests on supported Python versions.
